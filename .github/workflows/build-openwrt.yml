@@ -4,8 +4,8 @@ on:
   repository_dispatch:
     types: [lean, r2s]
   workflow_dispatch:
-  schedule:
-    - cron: 0 18 * * *
+  #schedule:
+  #  - cron: 0 18 * * *
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
@@ -53,8 +53,21 @@ jobs:
         pushd package/lean
         git clone --depth=1 https://github.com/fw876/helloworld
         popd
+        
+    - name: Start SSH via tmate
+      uses: P3TERX/ssh2actions@main
+      env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    
+    - name: Download package
+      id: package
+      run: |
+        cd $OPENWRTROOT
         make defconfig
         make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
 
     - name: Compile
       id: compile
